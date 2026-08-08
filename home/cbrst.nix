@@ -86,7 +86,7 @@ in
 
   programs.zsh = {
     enable = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.home.homeDirectory}/.config/zsh";
     loginExtra = ''
       source "$ZDOTDIR/dotfiles.zprofile"
     '';
