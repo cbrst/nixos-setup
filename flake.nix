@@ -7,6 +7,8 @@
   # single nixpkgs so we don't end up with multiple conflicting copies.
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Keep fast-moving desktop applications available without changing the base system channel.
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     ghostty = {
       url = "github:ghostty-org/ghostty";
       inputs.nixpkgs.follows = "nixpkgs";
