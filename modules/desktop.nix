@@ -8,6 +8,8 @@
 
   programs.nm-applet.enable = true;
   security.pam.services.hyprlock = { };
+  services.accounts-daemon.enable = true;
+  services.displayManager.sessionPackages = [ pkgs.hyprland ];
   services.greetd = {
     enable = true;
     settings.default_session = {
