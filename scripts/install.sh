@@ -132,6 +132,8 @@ write_local_config() {
   timeZone = "${timezone}";
   keyMap = "${keymap}";
 }
+EOF
+}
 
 write_hardware_config() {
   local boot_partition=$1
@@ -232,7 +234,7 @@ mount_target() {
 }
 
 main() {
-  local user hostname timezone keymap
+  local user hostname timezone keymap boot_partition root_partition
   resume_installation=false
 
   require_root
@@ -258,6 +260,8 @@ main() {
   else
     format_target
   fi
+  boot_partition="$(partition_path "${target_disk}" 1)"
+  root_partition="$(partition_path "${target_disk}" 2)"
   mkdir -p "${target_root}/etc/nixos"
   cp -a "${repo_root}/." "${target_root}/etc/nixos/"
   write_hardware_config "${boot_partition}" "${root_partition}"
