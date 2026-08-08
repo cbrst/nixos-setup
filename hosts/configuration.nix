@@ -7,7 +7,8 @@ in
     ../modules/base.nix
     ../modules/desktop.nix
     ../modules/gaming.nix
-  ] ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix;
+    ./hardware-configuration.nix
+  ];
 
   networking.hostName = local.hostName;
   time.timeZone = local.timeZone;
