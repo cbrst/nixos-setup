@@ -132,6 +132,45 @@ write_local_config() {
   timeZone = "${timezone}";
   keyMap = "${keymap}";
 }
+
+write_hardware_config() {
+  local boot_partition=$1
+  local root_partition=$2
+
+  cat > "${target_root}/etc/nixos/hosts/hardware-configuration.nix" <<EOF
+{ modulesPath, ... }:
+{
+  imports = [ "\${modulesPath}/installer/scan/not-detected.nix" ];
+
+  boot.initrd.availableKernelModules = [ "ahci" "nvme" "sd_mod" "usb_storage" "usbhid" "xhci_pci" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-amd" ];
+
+  fileSystems."/" = {
+    device = "${root_partition}";
+    fsType = "btrfs";
+    options = [ "subvol=@" "compress=zstd" ];
+  };
+  fileSystems."/home" = {
+    device = "${root_partition}";
+    fsType = "btrfs";
+    options = [ "subvol=@home" "compress=zstd" ];
+  };
+  fileSystems."/nix" = {
+    device = "${root_partition}";
+    fsType = "btrfs";
+    options = [ "subvol=@nix" "compress=zstd" ];
+  };
+  fileSystems."/var/log" = {
+    device = "${root_partition}";
+    fsType = "btrfs";
+    options = [ "subvol=@log" "compress=zstd" ];
+  };
+  fileSystems."/boot" = {
+    device = "${boot_partition}";
+    fsType = "vfat";
+  };
+}
 EOF
 }
 
@@ -221,7 +260,7 @@ main() {
   fi
   mkdir -p "${target_root}/etc/nixos"
   cp -a "${repo_root}/." "${target_root}/etc/nixos/"
-  nixos-generate-config --root "${target_root}" --show-hardware-config > "${target_root}/etc/nixos/hosts/hardware-configuration.nix"
+  write_hardware_config "${boot_partition}" "${root_partition}"
   write_local_config "${user}" "${hostname}" "${timezone}" "${keymap}"
 
   nixos-install --flake "${target_root}/etc/nixos#default"
