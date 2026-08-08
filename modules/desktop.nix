@@ -1,3 +1,6 @@
+# The Hyprland desktop: display server, greeter, and the system services and
+# apps a desktop needs (files, printing, portals, audio). Noctalia, the shell
+# on top of Hyprland, is configured via home-manager (programs.noctalia).
 { pkgs, ... }:
 {
   programs.hyprland = {

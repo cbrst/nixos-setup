@@ -1,3 +1,5 @@
+# Builds the bootable installer ISO (nixos-installer in flake.nix). It bundles
+# this repository at /root/nixos-config so the installer can be run offline.
 { config, lib, modulesPath, pkgs, self, ... }:
 {
   imports = [ "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix" ];
