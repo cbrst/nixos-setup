@@ -7,7 +7,7 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    lanzaboote.url = "github:nix-community/lanzaboote/v0.5.0";
+    lanzaboote.url = "github:nix-community/lanzaboote/v1.1.0";
     noctalia.url = "github:noctalia-dev/noctalia";
     dotfiles = {
       url = "github:cbrst/config";
