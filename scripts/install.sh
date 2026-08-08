@@ -25,7 +25,7 @@ prompt_value() {
   local default=$2
   local value
 
-  read -r "value?${prompt} [${default}]: "
+  read -r -p "${prompt} [${default}]: " value
   printf '%s' "${value:-${default}}"
 }
 
@@ -77,7 +77,7 @@ select_disk() {
   done < <(list_disks)
 
   [[ ${#disks[@]} -gt 0 ]] || die "no writable disks were found"
-  read -r "selected?Select the disk to erase [1-${#disks[@]}]: "
+  read -r -p "Select the disk to erase [1-${#disks[@]}]: " selected
   if ! [[ ${selected} =~ ^[0-9]+$ ]] || (( selected < 1 || selected > ${#disks[@]} )); then
     die "invalid disk selection"
   fi
@@ -90,7 +90,7 @@ select_disk() {
   fi
 
   printf '\nOnly %s will be erased. Every other disk, including the shared data disk, is ignored.\n' "${target_disk}"
-  read -r "confirmation?Type ERASE ${target_disk} to continue: "
+  read -r -p "Type ERASE ${target_disk} to continue: " confirmation
   [[ ${confirmation} == "ERASE ${target_disk}" ]] || die "confirmation did not match"
 }
 
