@@ -1,0 +1,7 @@
+# Generated per-machine by scripts/install.sh; never commit local disk UUIDs.
+hosts/hardware-configuration.nix
+hosts/local.nix
+
+# Local macOS and IDE metadata must not enter the flake source.
+.DS_Store
+.idea/
