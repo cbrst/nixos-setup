@@ -4,4 +4,7 @@
   hostName = "Asgard";
   timeZone = "Europe/Berlin";
   keyMap = "us";
+  # Opt into the Noctalia shell (home/cbrst.nix only defines the option when
+  # this is true). Disable to use plain Hyprland + hyprpaper instead.
+  noctalia = true;
 }

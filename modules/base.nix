@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, inputs, ... }:
 {
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
@@ -43,6 +43,9 @@
   };
   hardware.amdgpu.initrd.enable = true;
 
+  # The home-manager CLI is installed system-wide so the current user can run
+  # `home-manager switch` without needing a separate Nix profile. It also makes
+  # first-login provisioning during installation (scripts/install.sh) possible.
   environment.systemPackages = with pkgs; [
     curl
     git
@@ -52,5 +55,6 @@
     sbctl
     usbutils
     vim
+    inputs.home-manager.packages.${pkgs.system}.default
   ];
 }
