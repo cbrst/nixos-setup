@@ -267,7 +267,7 @@ main() {
   write_hardware_config "${boot_partition}" "${root_partition}"
   write_local_config "${user}" "${hostname}" "${timezone}" "${keymap}"
 
-  nixos-install --flake "${target_root}/etc/nixos#default"
+  nixos-install --flake "path:${target_root}/etc/nixos#default"
   enroll_secure_boot_keys
   printf '\nInstallation complete. Secure Boot keys are enrolled. Reboot, select NixOS from systemd-boot, then log in as %s.\n' "${user}"
 }
