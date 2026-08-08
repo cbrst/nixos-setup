@@ -56,6 +56,7 @@ in
       zoxide
       zsh
       nerd-fonts.jetbrains-mono
+      inputs.ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
   };
 
