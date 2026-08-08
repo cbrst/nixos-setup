@@ -3,6 +3,10 @@
 Reusable NixOS configuration and guarded installer for a Hyprland desktop with
 Noctalia, Nemo, AMD graphics, Steam, Flatpak, and the `cbrst/config` dotfiles.
 
+> **Documentation** — see [docs/](docs/). If you are new to Nix/NixOS, start
+> with [Getting started](docs/getting-started.md); for everyday commands see
+> [Daily workflow](docs/daily-workflow.md).
+
 ## Install
 
 ### Build the ISO
@@ -69,11 +73,34 @@ Linux. Existing shared disks are deliberately not mounted automatically: add a
 label or UUID-based mount only after inspecting the disk and its filesystem.
 
 The generated `hosts/local.nix` and `hosts/hardware-configuration.nix` contain
-machine-specific settings and are ignored by Git. Update the machine after
-editing configuration with:
+machine-specific settings. Update the machine after editing configuration with:
 
 ```sh
 sudo nixos-rebuild switch --flake /etc/nixos#default
+```
+
+## Home configuration
+
+The home-manager configuration is managed **standalone**, separately from the
+system profile, so the current user can rebuild it without root. The shared,
+machine-agnostic module lives in `home/cbrst.nix`; machine-specific values come
+from `machine` (see `hosts/local.nix` and `hosts/ghostty.conf`) and deep
+overrides from `hosts/home.nix`.
+
+```sh
+home-manager switch --flake /etc/nixos#cbrst
+```
+
+The `machine` attrset is derived from `hosts/local.nix` (identity) plus
+`hosts/ghostty.conf`, whose contents are written to
+`~/.config/ghostty/machine` and loaded last by the shared ghostty config.
+
+On a **fresh install**, the installer provisions the home configuration
+automatically (as the target user, via `nixos-enter`). If that step fails the
+install still succeeds and you run the command once after first login:
+
+```sh
+home-manager switch --flake /etc/nixos#cbrst
 ```
 
 Noctalia provides the bar, launcher, control center, notifications, wallpaper,
