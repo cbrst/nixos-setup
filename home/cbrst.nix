@@ -75,8 +75,8 @@ in
       "tmux".source = "${dotfiles}/tmux";
       "wezterm".source = "${dotfiles}/wezterm";
       "yt-dlp".source = "${dotfiles}/yt-dlp";
-      "zsh/.zprofile".source = "${dotfiles}/zsh/.zprofile";
-      "zsh/.zshrc".source = "${dotfiles}/zsh/.zshrc";
+      "zsh/dotfiles.zprofile".source = "${dotfiles}/zsh/.zprofile";
+      "zsh/dotfiles.zshrc".source = "${dotfiles}/zsh/.zshrc";
       "opencode/opencode.jsonc".text = opencodeConfig;
     };
     mimeApps.defaultApplications = {
@@ -87,6 +87,12 @@ in
   programs.zsh = {
     enable = true;
     dotDir = ".config/zsh";
+    loginExtra = ''
+      source "$ZDOTDIR/dotfiles.zprofile"
+    '';
+    initContent = ''
+      source "$ZDOTDIR/dotfiles.zshrc"
+    '';
   };
 
   systemd.user.services.headroom-bootstrap = {
