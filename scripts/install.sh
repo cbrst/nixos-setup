@@ -176,12 +176,15 @@ write_hardware_config() {
 EOF
 }
 
-enroll_secure_boot_keys() {
+create_secure_boot_keys() {
   if [[ ! -d /sys/firmware/efi/efivars ]]; then
     die "Secure Boot keys can only be enrolled when the installer is booted in UEFI mode"
   fi
 
   nixos-enter --root "${target_root}" -c 'sbctl create-keys'
+}
+
+enroll_secure_boot_keys() {
   if ! nixos-enter --root "${target_root}" -c 'sbctl enroll-keys --microsoft'; then
     die "Secure Boot key enrollment failed. Reboot into firmware setup, enable Setup Mode or clear the platform Secure Boot keys, then run: nixos-enter --root /mnt -c '"'"'sbctl enroll-keys --microsoft'"'"'"
   fi
@@ -267,6 +270,9 @@ main() {
   write_hardware_config "${boot_partition}" "${root_partition}"
   write_local_config "${user}" "${hostname}" "${timezone}" "${keymap}"
 
+  # Lanzaboote signs boot artifacts during installation, so its sbctl key must
+  # exist before nixos-install builds the first generation.
+  create_secure_boot_keys
   nixos-install --flake "path:${target_root}/etc/nixos#default"
   enroll_secure_boot_keys
   printf '\nInstallation complete. Secure Boot keys are enrolled. Reboot, select NixOS from systemd-boot, then log in as %s.\n' "${user}"
