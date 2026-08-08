@@ -75,7 +75,8 @@ in
       "tmux".source = "${dotfiles}/tmux";
       "wezterm".source = "${dotfiles}/wezterm";
       "yt-dlp".source = "${dotfiles}/yt-dlp";
-      "zsh".source = "${dotfiles}/zsh";
+      "zsh/.zprofile".source = "${dotfiles}/zsh/.zprofile";
+      "zsh/.zshrc".source = "${dotfiles}/zsh/.zshrc";
       "opencode/opencode.jsonc".text = opencodeConfig;
     };
     mimeApps.defaultApplications = {
@@ -83,17 +84,9 @@ in
     };
   };
 
-  home.file.".zshenv".text = ''
-    # Keep the shell configuration in the XDG directory managed by Home Manager.
-    export ZDOTDIR="$HOME/.config/zsh"
-  '';
-
   programs.zsh = {
     enable = true;
-    initContent = ''
-      # Load the existing portable Zsh setup after Home Manager initializes PATH.
-      source "$ZDOTDIR/.zshrc"
-    '';
+    dotDir = ".config/zsh";
   };
 
   systemd.user.services.headroom-bootstrap = {
