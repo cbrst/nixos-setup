@@ -46,7 +46,6 @@ in
       shellcheck
       shfmt
       starship
-      thefuck
       tmux
       unzip
       uv
@@ -73,7 +72,6 @@ in
       "lazygit".source = "${dotfiles}/lazygit";
       "nvim".source = "${dotfiles}/nvim";
       "starship".source = "${dotfiles}/starship";
-      "thefuck".source = "${dotfiles}/thefuck";
       "tmux".source = "${dotfiles}/tmux";
       "wezterm".source = "${dotfiles}/wezterm";
       "yt-dlp".source = "${dotfiles}/yt-dlp";
