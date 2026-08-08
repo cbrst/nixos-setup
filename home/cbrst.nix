@@ -69,6 +69,8 @@ in
       createDirectories = true;
     };
     configFile = {
+      "hypr".source = "${dotfiles}/hypr";
+      "noctalia".source = "${dotfiles}/noctalia";
       "fastfetch".source = "${dotfiles}/fastfetch";
       "ghostty".source = "${dotfiles}/ghostty";
       "lazygit".source = "${dotfiles}/lazygit";
@@ -131,55 +133,10 @@ in
   programs.noctalia = {
     enable = true;
     systemd.enable = true;
-    settings = {
-      shell = {
-        font = "JetBrainsMono Nerd Font";
-        settings_show_advanced = true;
-      };
-      theme = {
-        mode = "dark";
-        source = "builtin";
-        builtin = "Noctalia";
-      };
-    };
   };
 
-  wayland.windowManager.hyprland = {
-    enable = true;
-    systemd.enable = false;
-    settings = {
-      "$mod" = "SUPER";
-      bind = [
-        "$mod, Return, exec, ghostty"
-        "$mod, E, exec, nemo"
-        "$mod, L, exec, noctalia msg session lock"
-        "$mod, Q, killactive"
-        "$mod, M, exit"
-        "$mod, Space, exec, noctalia msg panel-toggle launcher"
-        "$mod, V, exec, noctalia msg panel-toggle clipboard"
-        "$mod, C, exec, noctalia msg panel-toggle control-center"
-        ", Print, exec, noctalia msg screenshot-region"
-        "$mod, 1, workspace, 1"
-        "$mod, 2, workspace, 2"
-        "$mod, 3, workspace, 3"
-        "$mod, 4, workspace, 4"
-        "$mod, 5, workspace, 5"
-      ];
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-      ];
-      input.kb_layout = local.keyMap;
-      general = {
-        gaps_in = 4;
-        gaps_out = 8;
-        border_size = 2;
-        layout = "dwindle";
-      };
-      decoration = {
-        rounding = 8;
-        blur.enabled = true;
-      };
-    };
-  };
+  # wayland.windowManager.hyprland = {
+  #   enable = true;
+  #   systemd.enable = false;
+  # };
 }
