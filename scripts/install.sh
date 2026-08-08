@@ -41,6 +41,10 @@ validate_timezone() {
   [[ $1 =~ ^[A-Za-z0-9_+./-]+$ && ${1} != *".."* ]] || die "timezone contains unsupported characters"
 }
 
+timezone_exists() {
+  timedatectl list-timezones | grep -Fxq "$1" || [[ -e "/usr/share/zoneinfo/$1" ]]
+}
+
 validate_keymap() {
   [[ $1 =~ ^[A-Za-z0-9,_+-]+$ ]] || die "keyboard layout contains unsupported characters"
 }
@@ -161,7 +165,7 @@ main() {
   validate_identifier "${hostname,,}"
   validate_timezone "${timezone}"
   validate_keymap "${keymap}"
-  [[ -e "/usr/share/zoneinfo/${timezone}" ]] || die "unknown timezone: ${timezone}"
+  timezone_exists "${timezone}" || die "unknown timezone: ${timezone}"
 
   format_target
   mkdir -p "${target_root}/etc/nixos"
