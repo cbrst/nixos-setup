@@ -37,7 +37,7 @@ in
       markdownlint-cli
       neovim
       nodejs
-      nodePackages.prettier
+      prettier
       opencode
       pkg-config
       python3
@@ -92,7 +92,7 @@ in
 
   programs.zsh = {
     enable = true;
-    initExtra = ''
+    initContent = ''
       # Load the existing portable Zsh setup after Home Manager initializes PATH.
       source "$ZDOTDIR/.zshrc"
     '';
