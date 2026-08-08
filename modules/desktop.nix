@@ -11,10 +11,13 @@
   services.greetd = {
     enable = true;
     settings.default_session = {
-      command = "${pkgs.regreet}/bin/regreet";
+      command = "${pkgs.cage}/bin/cage -s -- ${pkgs.regreet}/bin/regreet";
       user = "greeter";
     };
   };
+  systemd.tmpfiles.rules = [
+    "d /var/log/regreet 0755 greeter greeter -"
+  ];
   services.udisks2.enable = true;
   services.gvfs.enable = true;
   services.tumbler.enable = true;
