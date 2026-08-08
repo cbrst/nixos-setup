@@ -70,7 +70,7 @@ list_disks() {
 
 select_disk() {
   local -a disks=()
-  local entry selected confirmation
+  local entry selected confirmation mountpoints
   local index=1
 
   while IFS= read -r entry; do
@@ -89,13 +89,33 @@ select_disk() {
   IFS='|' read -r target_disk _ <<<"${disks[$((selected - 1))]}"
   [[ $(lsblk --nodeps --noheadings --output TYPE "${target_disk}") =~ disk ]] || die "selected path is not a disk"
 
-  if lsblk --noheadings --raw --output MOUNTPOINTS "${target_disk}" | grep -q '[^[:space:]]'; then
+  mountpoints="$(lsblk --noheadings --raw --output MOUNTPOINTS "${target_disk}")"
+
+  if target_is_prepared; then
+    printf '\n%s already has the NixOS installer layout. It can be resumed without erasing it.\n' "${target_disk}"
+    read -r -p "Resume the previous installation on ${target_disk}? [Y/n]: " confirmation
+    [[ ${confirmation,,} != "n" && ${confirmation,,} != "no" ]] || die "resume was declined"
+    resume_installation=true
+    return
+  fi
+
+  if [[ ${mountpoints} =~ [^[:space:]] ]]; then
     die "${target_disk} or one of its partitions is mounted; refuse to erase it"
   fi
 
   printf '\nOnly %s will be erased. Every other disk, including the shared data disk, is ignored.\n' "${target_disk}"
   read -r -p "Type ERASE ${target_disk} to continue: " confirmation
   [[ ${confirmation} == "ERASE ${target_disk}" ]] || die "confirmation did not match"
+}
+
+target_is_prepared() {
+  local boot_partition root_partition
+
+  boot_partition="$(partition_path "${target_disk}" 1)"
+  root_partition="$(partition_path "${target_disk}" 2)"
+  [[ $(blkid --match-token LABEL=NIXOS_BOOT --output device 2>/dev/null) == "${boot_partition}" ]] || return 1
+  [[ $(blkid --match-token LABEL=NIXOS_ROOT --output device 2>/dev/null) == "${root_partition}" ]] || return 1
+  [[ $(blkid --match-token LABEL=NIXOS_ROOT --output value --match-tag TYPE "${root_partition}" 2>/dev/null) == "btrfs" ]] || return 1
 }
 
 write_local_config() {
@@ -157,8 +177,24 @@ format_target() {
   mount "${boot_partition}" "${target_root}/boot"
 }
 
+mount_target() {
+  local boot_partition root_partition
+
+  boot_partition="$(partition_path "${target_disk}" 1)"
+  root_partition="$(partition_path "${target_disk}" 2)"
+
+  mkdir -p "${target_root}"
+  mountpoint -q "${target_root}" || mount -o compress=zstd,subvol=@ "${root_partition}" "${target_root}"
+  mkdir -p "${target_root}/home" "${target_root}/nix" "${target_root}/var/log" "${target_root}/boot"
+  mountpoint -q "${target_root}/home" || mount -o compress=zstd,subvol=@home "${root_partition}" "${target_root}/home"
+  mountpoint -q "${target_root}/nix" || mount -o compress=zstd,subvol=@nix "${root_partition}" "${target_root}/nix"
+  mountpoint -q "${target_root}/var/log" || mount -o compress=zstd,subvol=@log "${root_partition}" "${target_root}/var/log"
+  mountpoint -q "${target_root}/boot" || mount "${boot_partition}" "${target_root}/boot"
+}
+
 main() {
   local user hostname timezone keymap
+  resume_installation=false
 
   require_root
   require_uefi
@@ -178,7 +214,11 @@ main() {
   validate_keymap "${keymap}"
   timezone_exists "${timezone}" || die "unknown timezone: ${timezone}"
 
-  format_target
+  if [[ ${resume_installation} == true ]]; then
+    mount_target
+  else
+    format_target
+  fi
   mkdir -p "${target_root}/etc/nixos"
   cp -a "${repo_root}/." "${target_root}/etc/nixos/"
   nixos-generate-config --root "${target_root}" --show-hardware-config > "${target_root}/etc/nixos/hosts/hardware-configuration.nix"
