@@ -18,6 +18,7 @@ in
       TERMINAL = "ghostty";
       BROWSER = "firefox";
       NIXOS_OZONE_WL = "1";
+      SSH_AUTH_SOCK = "$HOME/.1password/agent.sock";
     };
     packages = with pkgs; [
       bat

@@ -19,6 +19,11 @@
 
   networking.networkmanager.enable = true;
   services.openssh.enable = true;
+  programs._1password.enable = true;
+  programs._1password-gui = {
+    enable = true;
+    polkitPolicyOwners = [ "cbrst" ];
+  };
   programs.zsh.enable = true;
   programs.dconf.enable = true;
 
