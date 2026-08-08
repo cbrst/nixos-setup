@@ -57,8 +57,8 @@ partition_path() {
 }
 
 list_disks() {
-  lsblk --nodeps --paths --noheadings --raw --output-separator '|' --output PATH,SIZE,MODEL,SERIAL,TYPE | \
-    while IFS='|' read -r path size model serial type; do
+  lsblk --nodeps --paths --noheadings --raw --output PATH,SIZE,MODEL,SERIAL,TYPE | \
+    while read -r path size model serial type; do
       [[ ${type} == "disk" ]] || continue
       printf '%s|%s|%s|%s\n' "${path}" "${size}" "${model:-unknown}" "${serial:-unknown}"
     done
