@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
@@ -9,14 +9,12 @@
 
   boot.loader = {
     efi.canTouchEfiVariables = true;
-    grub = {
-      enable = true;
-      efiSupport = true;
-      device = "nodev";
-      useOSProber = true;
-      enableCryptodisk = false;
-      shimSupport = true;
-    };
+    systemd-boot.enable = lib.mkForce false;
+  };
+
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
   };
 
   networking.networkmanager.enable = true;
@@ -45,8 +43,8 @@
     git
     gnupg
     gptfdisk
-    os-prober
     pciutils
+    sbctl
     usbutils
     vim
   ];

@@ -46,14 +46,23 @@ disk remain untouched.
 Default prompts are `cbrst`, `Asgard`, `Europe/Berlin`, and `us`; all can be
 changed per installation. The script creates a GPT disk layout with a 1 GiB EFI
 partition and Btrfs root subvolumes for `/`, `/home`, `/nix`, and `/var/log`.
+It then creates and enrolls Secure Boot keys before the first reboot.
 
 ## Secure Boot and Windows
 
-This configuration uses GRUB through the Microsoft-signed shim, so the installed
-system boots with Secure Boot enabled without enrolling custom keys or changing
-firmware Secure Boot settings. GRUB detects Windows through `os-prober` without
-writing to the Windows disk. `Windows Boot Manager` also remains available from
-the firmware boot menu.
+This configuration uses Lanzaboote, systemd-boot, and `sbctl`. The installer
+generates a local signing key and enrolls it along with Microsoft's Secure Boot
+certificates before rebooting. Secure Boot stays enabled; no first boot with
+Secure Boot disabled is required.
+
+Firmware must allow custom Secure Boot keys to be enrolled. On systems that
+reject the enrollment, enter firmware setup and enable Setup Mode or clear the
+existing platform Secure Boot keys, then rerun the displayed `sbctl enroll-keys
+--microsoft` command. This replaces the platform key database with your local
+key and Microsoft certificates, allowing both NixOS and Windows to boot.
+
+Windows remains available from the firmware boot menu as `Windows Boot Manager`.
+The installer never writes to the Windows disk.
 
 Disable Windows Fast Startup before accessing a Windows NTFS data volume from
 Linux. Existing shared disks are deliberately not mounted automatically: add a
