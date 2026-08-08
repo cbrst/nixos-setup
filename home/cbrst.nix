@@ -32,6 +32,7 @@ in
       gcc
       gnumake
       go
+      jetbrains.webstorm
       jq
       lazygit
       lua
@@ -56,6 +57,7 @@ in
       zoxide
       zsh
       nerd-fonts.jetbrains-mono
+      commit-mono
       inputs.ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
   };
