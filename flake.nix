@@ -72,7 +72,7 @@
       extraSpecialArgs = { inherit inputs machine; };
       modules = [
         # Machine-agnostic defaults (shared across all of the user's machines).
-        ./home/cbrst.nix
+        "${inputs.dotfiles}/home-manager/default.nix"
         # Machine-specific overrides (this machine only).
         ./hosts/home.nix
       ];
