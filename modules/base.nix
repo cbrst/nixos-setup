@@ -18,7 +18,7 @@
   };
 
   networking.networkmanager.enable = true;
-  services.openssh.enable = true;
+
   programs._1password.enable = true;
   programs._1password-gui = {
     enable = true;
@@ -30,12 +30,14 @@
   security.polkit.enable = true;
   security.rtkit.enable = true;
 
+  services.openssh.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+  services.tailscale.enable = true;
 
   hardware.graphics = {
     enable = true;
