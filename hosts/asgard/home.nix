@@ -7,5 +7,10 @@ let
   };
 in
 {
+  # Override the shared GTK default only for this machine.
+  gtk.font.name = "CommitMono";
+  # Keep GTK text compact on Asgard's displays.
+  gtk.font.size = 10;
+
   programs.vscode.package = lib.mkForce unstablePkgs.vscode;
 }
