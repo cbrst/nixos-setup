@@ -8,8 +8,20 @@
     withUWSM = true;
     xwayland.enable = true;
   };
-
+  programs.niri.enable = true;
   programs.nm-applet.enable = true;
+  programs.regreet = {
+    settings = {
+      background = {
+        path = "${./assets/regreet-background.jpg}";
+        fit = "Cover";
+      };
+      GTK = {
+        application_prefer_dark_theme = true;
+        theme_name = "Adwaita-dark";
+      };
+    };
+  };
   security.pam.services.hyprlock = { };
   services.accounts-daemon.enable = true;
   services.displayManager.sessionPackages = [ pkgs.hyprland ];
