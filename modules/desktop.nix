@@ -11,6 +11,8 @@
   programs.niri.enable = true;
   programs.nm-applet.enable = true;
   programs.regreet = {
+    enable = true;
+    theme.name = "Adwaita-dark";
     settings = {
       background = {
         path = "${../assets/regreet-background.jpg}";
@@ -18,7 +20,6 @@
       };
       GTK = {
         application_prefer_dark_theme = true;
-        theme_name = "Adwaita-dark";
       };
     };
   };
