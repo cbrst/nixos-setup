@@ -18,11 +18,11 @@
     "dotfiles": {
       "flake": false,
       "locked": {
-        "lastModified": 1787140476,
-        "narHash": "sha256-/qT5QpY5qkN+6VwFuJgzl9JFHLn/KY+/E0aFxWABSKA=",
+        "lastModified": 1787165413,
+        "narHash": "sha256-WC/Mg3H4oDIz72/AK+QN3UztianSPQLn8FEwTVG7PxE=",
         "owner": "cbrst",
         "repo": "config",
-        "rev": "d17a81781ac944494de3ab2816b9232737c95690",
+        "rev": "2fb3b1c64a3f6f518168829cf9f100b6c4f0ffae",
         "type": "github"
       },
       "original": {
