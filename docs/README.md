@@ -16,8 +16,8 @@ The short version of everything you need day-to-day:
 
 ```sh
 # Build a change to the *system* (needs sudo):
-sudo nixos-rebuild switch --flake /etc/nixos#default
+sudo nixos-rebuild switch --flake /etc/nixos#asgard
 
 # Build a change to *your home environment* (no sudo needed):
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```

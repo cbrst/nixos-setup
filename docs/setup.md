@@ -49,16 +49,17 @@ The script walks you through:
 1. **Choosing the disk.** It lists every disk with its size/model/serial. You
    type `ERASE /dev/sdX` to confirm — nothing is touched otherwise. A disk with
    mounted partitions is refused.
-2. **Identity prompts.** Defaults are `cbrst`, `Asgard`, `Europe/Berlin`, `us`.
-   You can change all of them. The values are written to
-   `hosts/local.nix` (the machine-identity half of the `machine` specialArg).
+2. **Identity prompts.** Defaults are `cbrst`, `Asgard`, `asgard`,
+   `Europe/Berlin`, `us`. The third prompt is the lowercase host profile. The
+   values are written to `hosts/<profile>/local.nix` (the machine-identity half
+   of the `machine` specialArg).
 3. **Formatting.** It creates a GPT layout with a 1 GiB EFI partition and Btrfs
    subvolumes for `/`, `/home`, `/nix`, `/var/log`.
 4. **Secure Boot.** It generates a local signing key and enrolls it together
    with Microsoft's certificates, so both NixOS and Windows can boot with
    Secure Boot enabled. This step happens *before* the system is built because
    Lanzaboote signs boot artifacts during the build.
-5. **System install** (`nixos-install --flake …#default`).
+5. **System install** (`nixos-install --flake …#<profile>`).
 6. **Home provisioning.** Because home-manager now runs standalone (see
    [Architecture](architecture.md)), the installer finishes by running
    `home-manager switch` *inside* the freshly installed system, as your user.
@@ -73,11 +74,11 @@ and your home environment should already be fully configured.
 If the installer could not provision your home configuration, do it now:
 
 ```sh
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
-> The `cbrst` at the end is the *user name* from `hosts/local.nix`. It is the
-> key of the `homeConfigurations` output in `flake.nix`, so it must match.
+> The target is `<user>@<profile>`, such as `cbrst@asgard`. The user comes from
+> `hosts/<profile>/local.nix`; the profile is the host directory name.
 
 ## 4. Day-two setup
 
@@ -109,7 +110,7 @@ git push -u origin main
 
 ```sh
 nix flake check /etc/nixos        # evaluates everything, catches errors
-nix flake show /etc/nixos         # lists the outputs (default, cbrst, installerIso)
+nix flake show /etc/nixos         # lists host, home, and installer outputs
 ```
 
 ## Secure Boot / Windows notes
@@ -122,7 +123,7 @@ nix flake show /etc/nixos         # lists the outputs (default, cbrst, installer
   menu. The installer never writes to a Windows disk. Disable Windows **Fast
   Startup** before reading an NTFS data disk from Linux.
 - Shared data disks are deliberately **not** auto-mounted. Add a label/UUID
-  based mount in `hosts/configuration.nix` after inspecting the disk.
+  based mount in `hosts/<profile>/configuration.nix` after inspecting the disk.
 
 ## Troubleshooting during setup
 
@@ -131,4 +132,4 @@ nix flake show /etc/nixos         # lists the outputs (default, cbrst, installer
 | "boot the NixOS installer in UEFI mode" | You booted in legacy/CSM mode; enable UEFI in firmware and reboot. |
 | "run from the NixOS installation ISO" | The script needs `nixos-generate-config`; boot the graphical/minimal NixOS ISO. |
 | "refuse to erase it" | A partition on the chosen disk is mounted; unmount or pick another disk. |
-| Home provisioning fails at the end | Not fatal — run `home-manager switch --flake /etc/nixos#cbrst` after login. |
+| Home provisioning fails at the end | Not fatal — run `home-manager switch --flake /etc/nixos#<user>@<profile>` after login. |

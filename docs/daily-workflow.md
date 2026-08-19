@@ -9,8 +9,8 @@ look foreign.
 
 ```sh
 # Your two commands
-sudo nixos-rebuild switch --flake /etc/nixos#default   # system changes (root)
-home-manager switch --flake /etc/nixos#cbrst           # home changes (your user)
+sudo nixos-rebuild switch --flake /etc/nixos#asgard       # system changes (root)
+home-manager switch --flake /etc/nixos#cbrst@asgard       # home changes (your user)
 
 # Inspect / verify
 nix flake show /etc/nixos       # what this flake can build
@@ -26,11 +26,12 @@ nix flake update /etc/nixos
 
 ## "I want to install a new program for my user"
 
-Programs in `home/cbrst.nix` under `home.packages` are available to **your
+Programs in the shared Home Manager module under `home.packages` are available to **your
 user** (no `sudo` needed to use them).
 
-1. Open `/etc/nixos/home/cbrst.nix`.
-2. Add the package name to the list, e.g. `htop`:
+1. Open the `home-manager/default.nix` module in the configured `dotfiles`
+   input source.
+2. Add the package name to the list, for example `htop`:
 
    ```nix
    home.packages = with pkgs; [
@@ -44,7 +45,7 @@ user** (no `sudo` needed to use them).
 3. Rebuild:
 
    ```sh
-   home-manager switch --flake /etc/nixos#cbrst
+    home-manager switch --flake /etc/nixos#cbrst@asgard
    ```
 
 Done. The program appears in your PATH. To find out if a package exists and
@@ -64,7 +65,7 @@ have, or a tool you want available even before logging in. Add it in a module
 under `environment.systemPackages` (e.g. `modules/base.nix`), then:
 
 ```sh
-sudo nixos-rebuild switch --flake /etc/nixos#default
+sudo nixos-rebuild switch --flake /etc/nixos#asgard
 ```
 
 **When in doubt, prefer `home.packages`** — it needs no `sudo` to rebuild and
@@ -73,8 +74,8 @@ stays scoped to you.
 ## "I want to change my Ghostty settings on this machine only"
 
 Ghostty's config is split: the shared parts come from the dotfiles repo, and a
-**machine-specific override** lives in `/etc/nixos/hosts/ghostty.conf`. That
-file is loaded last by Ghostty, so anything in it wins.
+**machine-specific override** lives in `/etc/nixos/hosts/asgard/ghostty.conf`.
+That file is loaded last by Ghostty, so anything in it wins.
 
 Example — a bigger font on this machine's high-DPI display:
 
@@ -86,10 +87,10 @@ background-opacity = 0.9
 Then:
 
 ```sh
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
-The contents of `hosts/ghostty.conf` become `~/.config/ghostty/machine`. You
+The contents of `hosts/asgard/ghostty.conf` become `~/.config/ghostty/machine`. You
 can see it took effect with `ghostty +list-fonts` or simply by opening a new
 terminal.
 
@@ -99,7 +100,7 @@ terminal.
 ## "I want to add or change my dotfiles"
 
 Dotfiles (nvim, zsh, tmux, …) are symlinked into `~/.config` from the
-`github.com/cbrst/config` repo by `home/cbrst.nix`. Editing them is a normal
+`github.com/cbrst/config` repo by its shared Home Manager module. Editing them is a normal
 git workflow in *that* repo:
 
 ```sh
@@ -113,7 +114,7 @@ Then pull the new commit into the flake and re-link:
 
 ```sh
 nix flake update /etc/nixos    # updates the dotfiles input (and everything else)
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
 ## "I made a mistake and want to go back"
@@ -124,7 +125,7 @@ Because every switch creates a generation, going back is easy and safe.
   if the system doesn't even boot, pick an older generation from the
   systemd-boot menu at startup.
 - **Home:** `home-manager generations` to list them, then
-  `home-manager switch --flake /etc/nixos#cbrst` after reverting the file, or
+  `home-manager switch --flake /etc/nixos#cbrst@asgard` after reverting the file, or
   `nix profile history` / `nix profile rollback` if you use the nix profile.
 
 The old generations remain on disk until you garbage-collect them (next
@@ -147,8 +148,8 @@ sudo nix-collect-garbage -d    # delete ALL old generations (careful)
 
 ```sh
 nix flake update /etc/nixos     # refresh flake.lock from the remote repos
-sudo nixos-rebuild switch --flake /etc/nixos#default
-home-manager switch --flake /etc/nixos#cbrst
+sudo nixos-rebuild switch --flake /etc/nixos#asgard
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
 `flake.lock` is the git-tracked record of what you updated — commit it so the
@@ -173,7 +174,7 @@ type errors, etc. — without installing anything.
 ## "I want to see what's actually going to change"
 
 ```sh
-sudo nixos-rebuild build --flake /etc/nixos#default   # builds, does not switch
+sudo nixos-rebuild build --flake /etc/nixos#asgard   # builds, does not switch
 ```
 
 And to review what a switch would change before applying, run
@@ -191,18 +192,18 @@ old link must be removed before the new per-file links can be created:
 
 ```sh
 rm ~/.config/ghostty      # it's a store symlink, safe to remove
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
 ### `The option 'programs.noctalia' does not exist`
 
 Noctalia (the Hyprland shell) is Linux-only and opt-in via `machine.noctalia`
-in `hosts/local.nix`. The option only exists when that field is set. Either
+in `hosts/asgard/local.nix`. The option only exists when that field is set. Either
 set `noctalia = true` or remove the reference.
 
 ### `home-manager: error: … user 'root' does not match`
 
-`home-manager switch` must run as the user named by `hosts/local.nix`
+`home-manager switch` must run as the user named by `hosts/asgard/local.nix`
 (`cbrst`), not as root. Log in as that user and retry.
 
 ### `error: unfree package '…'`

@@ -28,7 +28,7 @@ changed, you describe the *entire* desired system in Nix code. Running a single
 command rebuilds the system from that description:
 
 ```sh
-sudo nixos-rebuild switch --flake /etc/nixos#default
+sudo nixos-rebuild switch --flake /etc/nixos#asgard
 ```
 
 The old system is not deleted — it becomes a *generation* you can roll back to
@@ -43,7 +43,7 @@ Think of your setup as three stacked layers, each rebuilt separately:
 │ 3. Dotfiles repo (github.com/cbrst/config)  │  App config files (nvim, ghostty,
 │    ─ not built, just copied/symlinked       │  zsh, ...) shared across machines.
 ├─────────────────────────────────────────────┤
-│ 2. home-manager  (home/cbrst.nix)           │  Your user's programs, dotfiles,
+│ 2. home-manager  (dotfiles input)           │  Your user's programs, dotfiles,
 │    home-manager switch --flake /etc/nixos…  │  services. Rebuilt AS the user,
 │                                             │  no sudo.
 ├─────────────────────────────────────────────┤
@@ -73,8 +73,9 @@ A **flake** is a standard way to package a Nix project. A directory with a
   repo, ...). Their exact versions are pinned in `flake.lock`, a lock file
   similar to `package-lock.json` or `Cargo.lock`. This is what makes builds
   reproducible: the same lock file always produces the same result.
-- **`outputs`** — what this flake *produces*. Here: the `default` NixOS system,
-  the installer ISO, and the `cbrst` home configuration.
+- **`outputs`** — what this flake *produces*. Here: one NixOS system per host
+  directory (for example `asgard`), the installer ISO, and one home
+  configuration per user/host pair (for example `cbrst@asgard`).
 
 ### nixpkgs
 
@@ -84,9 +85,10 @@ instead you add a package name to a list in your config and rebuild.
 
 ### `specialArgs` (how `machine` reaches the configs)
 
-The flake passes values into configurations. For example `flake.nix` builds a
-`machine` attribute set from `hosts/local.nix` and `hosts/ghostty.conf`, then
-injects it via `specialArgs`. Any module can then declare it in its function
+The flake passes values into configurations. For each host directory, it builds
+a `machine` attribute set from `hosts/<host>/local.nix` and
+`hosts/<host>/ghostty.conf`, then injects it via `specialArgs`. Any module can
+then declare it in its function
 header:
 
 ```nix
@@ -134,15 +136,15 @@ library, `inputs` the flake inputs, and `machine` our per-machine data.
 
 ```sh
 # System changes (root). Rebuild everything at layer 1.
-sudo nixos-rebuild switch --flake /etc/nixos#default
+sudo nixos-rebuild switch --flake /etc/nixos#asgard
 
 # Home changes (your user). Rebuild layer 2.
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
-You only need the command for the layer you actually changed. A change to
-`home/cbrst.nix` or `hosts/ghostty.conf` needs only `home-manager switch`. A
-change to `modules/*.nix` or `hosts/configuration.nix` needs
+You only need the command for the layer you actually changed. A change to the
+shared home module or `hosts/asgard/ghostty.conf` needs only `home-manager
+switch`. A change to `modules/*.nix` or `hosts/asgard/configuration.nix` needs
 `nixos-rebuild switch`.
 
 > **Rule of thumb:** If you changed something about *your user*, run

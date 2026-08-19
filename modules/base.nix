@@ -1,4 +1,4 @@
-{ pkgs, lib, inputs, ... }:
+{ pkgs, lib, inputs, machine, ... }:
 {
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
@@ -22,7 +22,7 @@
   programs._1password.enable = true;
   programs._1password-gui = {
     enable = true;
-    polkitPolicyOwners = [ "cbrst" ];
+    polkitPolicyOwners = [ machine.user ];
   };
   programs.zsh.enable = true;
   programs.dconf.enable = true;

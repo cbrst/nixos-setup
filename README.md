@@ -47,8 +47,9 @@ It refuses a disk that has mounted partitions. It does not mount, partition,
 or modify non-selected disks, so an existing Windows disk and a shared data
 disk remain untouched.
 
-Default prompts are `cbrst`, `Asgard`, `Europe/Berlin`, and `us`; all can be
-changed per installation. The script creates a GPT disk layout with a 1 GiB EFI
+Default prompts are `cbrst`, `Asgard`, `asgard`, `Europe/Berlin`, and `us`; all
+can be changed per installation. The third prompt is the lowercase host profile
+name used in flake commands. The script creates a GPT disk layout with a 1 GiB EFI
 partition and Btrfs root subvolumes for `/`, `/home`, `/nix`, and `/var/log`.
 It then creates and enrolls Secure Boot keys before the first reboot.
 
@@ -72,27 +73,28 @@ Disable Windows Fast Startup before accessing a Windows NTFS data volume from
 Linux. Existing shared disks are deliberately not mounted automatically: add a
 label or UUID-based mount only after inspecting the disk and its filesystem.
 
-The generated `hosts/local.nix` and `hosts/hardware-configuration.nix` contain
-machine-specific settings. Update the machine after editing configuration with:
+Each machine is a named directory under `hosts/`; the installer creates or
+updates `hosts/<host>/local.nix` and `hosts/<host>/hardware-configuration.nix`.
+The profile name, not the hostname, is used to rebuild it:
 
 ```sh
-sudo nixos-rebuild switch --flake /etc/nixos#default
+sudo nixos-rebuild switch --flake /etc/nixos#asgard
 ```
 
 ## Home configuration
 
 The home-manager configuration is managed **standalone**, separately from the
 system profile, so the current user can rebuild it without root. The shared,
-machine-agnostic module lives in `home/cbrst.nix`; machine-specific values come
-from `machine` (see `hosts/local.nix` and `hosts/ghostty.conf`) and deep
-overrides from `hosts/home.nix`.
+machine-agnostic module lives in the `dotfiles` input; machine-specific values
+come from `machine` (see `hosts/<host>/local.nix` and
+`hosts/<host>/ghostty.conf`) and deep overrides from `hosts/<host>/home.nix`.
 
 ```sh
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
-The `machine` attrset is derived from `hosts/local.nix` (identity) plus
-`hosts/ghostty.conf`, whose contents are written to
+The `machine` attrset is derived from `hosts/<host>/local.nix` (identity) plus
+`hosts/<host>/ghostty.conf`, whose contents are written to
 `~/.config/ghostty/machine` and loaded last by the shared ghostty config.
 
 On a **fresh install**, the installer provisions the home configuration
@@ -100,7 +102,7 @@ automatically (as the target user, via `nixos-enter`). If that step fails the
 install still succeeds and you run the command once after first login:
 
 ```sh
-home-manager switch --flake /etc/nixos#cbrst
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
 Noctalia provides the bar, launcher, control center, notifications, wallpaper,

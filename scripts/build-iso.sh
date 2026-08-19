@@ -4,7 +4,7 @@
 #
 # The ISO embeds the entire flake source (system config, home-manager module,
 # machine overrides, installer) at /root/nixos-config, so no network clone is
-# needed on the target. The installer then installs the #default system profile
+# needed on the target. The installer then installs the selected host profile
 # and provisions the home configuration with standalone home-manager.
 set -euo pipefail
 

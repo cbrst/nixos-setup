@@ -27,58 +27,60 @@
 
   outputs = inputs@{ self, nixpkgs, home-manager, lanzaboote, ... }:
   let
-    system = "x86_64-linux";
+    lib = nixpkgs.lib;
+    hostNames = builtins.filter (name:
+      (builtins.readDir ./hosts).${name} == "directory"
+      && builtins.pathExists ./hosts/${name}/local.nix
+    ) (builtins.attrNames (builtins.readDir ./hosts));
 
-    # Home-manager runs standalone, so it needs its own pkgs set. It mirrors
-    # the system's settings (here: allow proprietary software such as
-    # JetBrains WebStorm) because it no longer inherits them from the NixOS
-    # configuration.
-    pkgs = import nixpkgs {
+    mkMachine = host: (import ./hosts/${host}/local.nix) // {
+      ghostty = builtins.readFile ./hosts/${host}/ghostty.conf;
+    };
+
+    mkPkgs = system: import nixpkgs {
       inherit system;
       config.allowUnfree = true;
     };
 
-    # `machine` is the machine-specific data injected into every configuration
-    # through `specialArgs`/`extraSpecialArgs`. hosts/local.nix holds identity
-    # (user, hostname, ...) and hosts/ghostty.conf the per-machine Ghostty
-    # override, which home-manager writes to ~/.config/ghostty/machine.
-    machine = (import ./hosts/local.nix) // {
-      ghostty = builtins.readFile ./hosts/ghostty.conf;
-    };
-  in {
-    nixosConfigurations = {
-      # The main desktop system. Rebuilt with:
-      #   sudo nixos-rebuild switch --flake /etc/nixos#default
-      default = nixpkgs.lib.nixosSystem {
-        inherit system;
+    mkNixosConfiguration = host:
+      let machine = mkMachine host;
+      in nixpkgs.lib.nixosSystem {
+        system = machine.system or "x86_64-linux";
         specialArgs = { inherit inputs machine; };
         modules = [
-          ./hosts/configuration.nix
+          ./hosts/${host}/configuration.nix
           lanzaboote.nixosModules.lanzaboote
         ];
       };
 
+    mkHomeConfiguration = host:
+      let
+        machine = mkMachine host;
+        system = machine.system or "x86_64-linux";
+      in {
+        name = "${machine.user}@${host}";
+        value = home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs system;
+          extraSpecialArgs = { inherit inputs machine; };
+          modules = [
+            "${inputs.dotfiles}/home-manager/default.nix"
+            ./hosts/${host}/home.nix
+          ];
+        };
+      };
+  in {
+    nixosConfigurations = lib.genAttrs hostNames mkNixosConfiguration // {
       # Minimal configuration used only to build the bootable installer ISO.
       installer = nixpkgs.lib.nixosSystem {
-        inherit system;
+        system = "x86_64-linux";
         specialArgs = { inherit inputs self; };
         modules = [ ./modules/installer-iso.nix ];
       };
     };
 
-    # The user's home environment, managed separately from the system. Rebuilt
-    # as the user (no sudo) with:
-    #   home-manager switch --flake /etc/nixos#cbrst
-    homeConfigurations.${machine.user} = home-manager.lib.homeManagerConfiguration {
-      inherit pkgs;
-      extraSpecialArgs = { inherit inputs machine; };
-      modules = [
-        # Machine-agnostic defaults (shared across all of the user's machines).
-        "${inputs.dotfiles}/home-manager/default.nix"
-        # Machine-specific overrides (this machine only).
-        ./hosts/home.nix
-      ];
-    };
+    # Standalone home-manager configurations are keyed by user and host so a
+    # single user can have different home overrides on several machines.
+    homeConfigurations = lib.listToAttrs (map mkHomeConfiguration hostNames);
 
     packages.x86_64-linux.installerIso = self.nixosConfigurations.installer.config.system.build.isoImage;
   };

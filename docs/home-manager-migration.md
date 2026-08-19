@@ -53,8 +53,8 @@ override module.
 
 ## Deliverables
 
-1. Add `home-manager/` with the shared module, migrating the wiring from the
-   reference implementation at `/etc/nixos/home/cbrst.nix`:
+1. Maintain `home-manager/` as the shared module consumed from the `dotfiles`
+   input:
    - `xdg.configFile` mappings for hypr, noctalia, fastfetch, ghostty, lazygit,
      nvim, starship, tmux, wezterm, yt-dlp, zsh (`.zprofile`/`.zshrc`),
      opencode (keep the `lib.replaceStrings` that rewrites the headroom path);
@@ -70,13 +70,13 @@ override module.
 3. Provide `home-manager/example-flake.nix` showing consumption:
 
    ```nix
-   machine = (import ./hosts/local.nix) // {
-     ghostty = builtins.readFile ./hosts/ghostty.conf;
+    machine = (import ./hosts/<host>/local.nix) // {
+      ghostty = builtins.readFile ./hosts/<host>/ghostty.conf;
    };
-   homeConfigurations.${machine.user} = home-manager.lib.homeManagerConfiguration {
+    homeConfigurations."${machine.user}@<host>" = home-manager.lib.homeManagerConfiguration {
      pkgs = nixpkgs.legacyPackages.<system>;
      extraSpecialArgs = { inherit inputs machine; };
-     modules = [ "${inputs.dotfiles}/home-manager/default.nix" ./hosts/home.nix ];
+      modules = [ "${inputs.dotfiles}/home-manager/default.nix" ./hosts/<host>/home.nix ];
    };
    ```
 

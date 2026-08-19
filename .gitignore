@@ -1,5 +1,6 @@
-# Generated per-machine by scripts/install.sh; never commit local disk UUIDs.
-# hosts/hardware-configuration.nix
+# The installer writes generated values under hosts/<profile>/ and stages them
+# so that its first flake evaluation can see the selected host. Commit the
+# resulting profile to reproduce that machine.
 
 # Local macOS and IDE metadata must not enter the flake source.
 .DS_Store

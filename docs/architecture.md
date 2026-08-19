@@ -1,165 +1,85 @@
 # Architecture
 
-How this repository is wired together, layer by layer, and how the
-machine-specific vs. shared split works. Reading order: flake, machine
-identity, system modules, home-manager module.
+This repository manages multiple NixOS machines from one flake. Shared modules
+are reused; each host has its own identity, hardware, and optional overrides.
 
 ## Repository layout
 
 ```
 /etc/nixos
-├── flake.nix                # the flake: inputs, outputs, specialArgs wiring
-├── flake.lock               # pinned versions of all inputs (commit this!)
+├── flake.nix
 ├── hosts/
-│   ├── configuration.nix    # NixOS system config, imports modules + hardware
-│   ├── local.nix            # MACHINE identity (user, hostname, timezone, …)
-│   ├── ghostty.conf         # MACHINE Ghostty override (loaded last by Ghostty)
-│   └── home.nix             # MACHINE home-manager deep overrides (thin)
-├── modules/
-│   ├── base.nix             # system essentials, users, firmware, the home-manager CLI
-│   ├── desktop.nix          # graphical session, display server, audio
-│   ├── gaming.nix           # Steam, 32-bit support, GPU
-│   └── installer-iso.nix    # turns the flake into a bootable installer ISO
-├── home/
-│   └── cbrst.nix            # SHARED home-manager module (machine-agnostic)
-├── scripts/
-│   ├── build-iso.sh         # builds the installer ISO
-│   └── install.sh           # partitions, installs, provisions home config
-├── docs/                    # this documentation
-└── README.md
+│   ├── asgard/                 # one complete host profile
+│   │   ├── configuration.nix    # system entry point and module selection
+│   │   ├── hardware-configuration.nix
+│   │   ├── local.nix            # identity and platform settings
+│   │   ├── home.nix             # home-manager overrides
+│   │   └── ghostty.conf         # Ghostty overrides
+│   └── templates/               # copied by the installer for a new host
+├── modules/                     # shared NixOS modules
+└── scripts/install.sh
 ```
 
-## The flake (`flake.nix`)
+Every directory under `hosts/` that contains `local.nix` is a host. The
+directory name is its stable flake selector; it need not match the display
+hostname. `hosts/templates` is not a host because it intentionally lacks a
+`local.nix`.
 
-```nix
-{
-  inputs = { nixpkgs; home-manager; dotfiles; };  # + others
+## Flake outputs
 
-  outputs = { self, nixpkgs, home-manager, dotfiles, ... }:
-    let
-      system = "x86_64-linux";
+`flake.nix` discovers host directories and creates two outputs for each one:
 
-      # 1. machine identity  — from hosts/local.nix
-      machine = { user, hostName, timeZone, keyMap, noctalia, ... }:
-        { inherit user hostName timeZone keyMap noctalia;
-          ghostty = builtins.readFile ./hosts/ghostty.conf; };
+| Host directory | NixOS output | Home Manager output |
+| --- | --- | --- |
+| `hosts/asgard` | `nixosConfigurations.asgard` | `homeConfigurations."cbrst@asgard"` |
 
-      # 2. standalone pkgs with unfree allowed (home-manager needs its own)
-      pkgs = import nixpkgs { inherit system;
-        overlays = [ self.overlays.default ];
-        config.allowUnfree = true; };
+The Home Manager key contains both user and host, so one user can have separate
+home overrides on several machines.
 
-    in {
-      nixosConfigurations.default = ...;        # NixOS system
-      homeConfigurations.${machine.user} = ...; # standalone home-manager
-      installerIso.x86_64-linux = ...;          # installer ISO
-    };
-}
+```sh
+sudo nixos-rebuild switch --flake /etc/nixos#asgard
+home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
-The important part is the **`machine` specialArg**. It is constructed in
-`flake.nix` from `hosts/local.nix` (identity) and `hosts/ghostty.conf` (Ghostty
-text) and injected into *every* configuration via `specialArgs`. That is how
-the shared modules below can reference per-machine values without knowing them.
+The `machine` special argument is built separately for every host from its
+`local.nix` plus the text in `ghostty.conf`. Shared modules receive that value
+through `specialArgs` or `extraSpecialArgs`, so they can use settings such as
+`machine.hostName` without hardcoding a machine.
 
-## The three-way override mechanism
+## Shared and host-specific settings
 
-Everything user-facing is built from three layers, applied in this order:
+Put settings used by all machines in `modules/` or the shared Home Manager
+module from the `dotfiles` input. Put settings that differ by machine in the
+matching `hosts/<host>/` directory.
 
-| # | Source | Purpose | Example |
-| --- | --- | --- | --- |
-| 1 | `home/cbrst.nix` (shared) | defaults for every machine | packages, dotfile symlinks, shell |
-| 2 | `machine` specialArg | simple per-machine values | `ghostty = readFile hosts/ghostty.conf` |
-| 3 | `hosts/home.nix` (module) | deep overrides of anything | change a whole package config |
-
-Rules of the game (documented at the top of `home/cbrst.nix`):
-
-- **Shared module** = the single source of defaults, marked everywhere with
-  `machine.<field> or <default>`, so a machine can opt out.
-- **`machine` specialArg** = lightweight identity + generated text. Adding a
-  field means editing `flake.nix` (where it's assembled) and the relevant
-  shared module.
-- **`hosts/home.nix`** = the escape hatch. It is imported *after* the shared
-  module, so it can override anything with the normal NixOS module priority
-  rules. Keep it thin — most machines shouldn't need it at all.
-- `ghostty/machine` is assembled from `hosts/ghostty.conf` and loaded **last**
-  by Ghostty (the shared `ghostty/config` ends with `config-file = ?machine`),
-  so per-machine settings always win.
-
-## System vs. home
-
-The split is strict:
-
-| Concern | Lives in | Rebuilt with | Runs as |
-| --- | --- | --- | --- |
-| Kernel, hardware, bootloader, firmware, system services, network, users | `hosts/configuration.nix` + `modules/*.nix` | `sudo nixos-rebuild switch --flake /etc/nixos#default` | root |
-| User programs, dotfiles, user services, shell, themes | `home/cbrst.nix` + `hosts/home.nix` | `home-manager switch --flake /etc/nixos#<user>` | your user |
-
-`hosts/configuration.nix` therefore contains **no** home-manager block anymore.
-It only creates the user; everything about that user's environment is owned by
-the standalone `homeConfigurations` output. The trade-off: `nixos-rebuild`
-alone no longer updates your home environment (run both, or rely on the
-installer's auto-provisioning for fresh installs).
-
-## Module reference
-
-### `hosts/configuration.nix`
-The system's entry point. Imports hardware config (generated by
-`nixos-generate-config`), `modules/*`, and the flake's `nixos-hardware` module
-for this machine. Sets `system.stateVersion`.
-
-### `modules/base.nix`
-System essentials: `users.users.<user>` with sudo/wheel, flake registration,
-Git, firmware/broadcom driver, and — importantly — the **home-manager CLI**
-installed system-wide:
-
-```nix
-environment.systemPackages = [
-  inputs.home-manager.packages.${pkgs.system}.default
-];
-```
-
-This single line is why `home-manager switch` works both for your user and
-inside the installer's `nixos-enter` chroot.
-
-### `modules/desktop.nix`
-The graphical stack: display server (Hyprland/Wayland), seat management,
-audio, theming.
-
-### `modules/gaming.nix`
-Steam + Proton 32-bit libs, GPU drivers, any gaming-specific kernel/firmware.
-
-### `modules/installer-iso.nix`
-Makes the flake produce a bootable installer ISO that embeds this whole
-repository (as `/root/nixos-config`) plus the install script.
-
-### `home/cbrst.nix` (shared home module)
-The heart of your user environment:
-- imports home-manager's core modules (zsh, git, ghostty, …) and the opt-in
-  `noctalia` module (`machine.noctalia`),
-- `home.packages` — your user programs,
-- `xdg.configFile` — dotfile symlinks into `~/.config` from the `dotfiles`
-  input, including the `ghostty/{config,keybindings,themes,machine}` split,
-- Linux-only blocks (systemd user services, fontconfig, GTK, mimeApps) gated
-  behind `lib.mkIf pkgs.stdenv.isLinux` so the module also evaluates on macOS.
-
-### `hosts/local.nix`
-Generated by the installer. Contains **only** machine identity
-(`user`, `hostName`, `timeZone`, `keyMap`, `noctalia`), not configs.
-
-### `hosts/home.nix`
-The per-machine home override. Currently thin; add deep overrides here.
-
-## `scripts/`
-
-| Script | Job |
+| Concern | Location |
 | --- | --- |
-| `build-iso.sh` | `nix build .#installerIso` → `result/iso/…`. |
-| `install.sh` | Interactive, guarded installer. Chooses disk (typing `ERASE /dev/sdX` confirms), generates `hosts/local.nix`, formats (GPT + Btrfs subvolumes), enrolls Secure Boot keys, runs `nixos-install --flake …#default`, then provisions home via `nixos-enter` + `home-manager switch` as the target user. |
+| Kernel, drivers, mounts, boot entries | `hosts/<host>/hardware-configuration.nix` |
+| Hostname, user, timezone, keyboard, platform | `hosts/<host>/local.nix` |
+| Shared desktop, base system, gaming defaults | `modules/*.nix` |
+| Enable/disable or customize system features for one host | `hosts/<host>/configuration.nix` |
+| User-environment overrides for one host | `hosts/<host>/home.nix` |
+| Terminal overrides for one host | `hosts/<host>/ghostty.conf` |
 
-## Future work: extracting the shared module
+## Adding a host manually
 
-`home/cbrst.nix` is written to be machine-agnostic so it can be moved into the
-`github.com/cbrst/config` dotfiles repo (already a flake input here) and shared
-across machines without this repo. The design contract for that move lives in
-[docs/home-manager-migration.md](home-manager-migration.md).
+1. Copy the template directory: `cp -r hosts/templates hosts/laptop`.
+2. Create `hosts/laptop/local.nix` with `user`, `hostName`, `timeZone`,
+   `keyMap`, `system`, and optional values such as `noctalia`.
+3. Generate or write `hosts/laptop/hardware-configuration.nix` for that
+   machine's disks and drivers.
+4. Adjust `configuration.nix`, `home.nix`, and `ghostty.conf` as needed.
+5. Stage the directory before evaluating: `git add hosts/laptop`.
+6. Build it with `sudo nixos-rebuild switch --flake /etc/nixos#laptop` and
+   `home-manager switch --flake /etc/nixos#<user>@laptop`.
+
+Nix flakes in a Git checkout do not include untracked files. Staging a new host
+is therefore required before its output exists.
+
+## Installer
+
+The installer asks for a host profile after the hostname. It copies the
+templates into `hosts/<profile>/` when that directory does not yet exist,
+writes the profile's `local.nix` and hardware configuration, stages those
+files, and installs `#<profile>`. Existing profile-specific configuration,
+home, and Ghostty override files are preserved.

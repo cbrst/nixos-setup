@@ -1,5 +1,5 @@
 # Gaming support: Steam with Gamescope sessions plus performance helpers.
-# Optional on non-gaming machines - drop it from hosts/configuration.nix's
+# Optional on non-gaming machines - drop it from that host's configuration.nix
 # `imports` to disable.
 { pkgs, ... }:
 {
