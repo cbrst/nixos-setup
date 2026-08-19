@@ -10,6 +10,9 @@
   programs.gamemode.enable = true;
   programs.gamescope.enable = true;
 
+  # Steam needs Xwayland to run in a Wayland compositor
+  programs.xwayland.enable = true;
+
   environment.systemPackages = with pkgs; [
     mangohud
     protonup-qt
