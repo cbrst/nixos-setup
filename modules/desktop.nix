@@ -13,7 +13,7 @@
   programs.regreet = {
     settings = {
       background = {
-        path = "${./assets/regreet-background.jpg}";
+        path = "${../assets/regreet-background.jpg}";
         fit = "Cover";
       };
       GTK = {
