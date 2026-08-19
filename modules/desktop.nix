@@ -23,7 +23,6 @@
       };
     };
   };
-  security.pam.services.hyprlock = { };
   services.accounts-daemon.enable = true;
   services.displayManager.sessionPackages = [ pkgs.hyprland ];
   services.greetd = {
@@ -67,8 +66,6 @@
     gnome-calculator
     gnome-text-editor
     firefox
-    hyprpaper
-    hyprlock
     hypridle
     hyprpicker
     hyprsunset
