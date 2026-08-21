@@ -41,6 +41,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    cine
     nemo
     nemo-fileroller
     file-roller
