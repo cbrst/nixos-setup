@@ -1,6 +1,6 @@
-# NixOS Hyprland Desktop
+# NixOS Niri Desktop
 
-Reusable NixOS configuration and guarded installer for a Hyprland desktop with
+Reusable NixOS configuration and guarded installer for a Niri desktop with
 Noctalia, Nemo, AMD graphics, Steam, Flatpak, and the `cbrst/config` dotfiles.
 
 > **Documentation** — see [docs/](docs/). If you are new to Nix/NixOS, start
@@ -19,7 +19,7 @@ Nix installed:
 ./scripts/build-iso.sh
 ```
 
-The finished image is available at `result/iso/nixos-hyprland-installer-*.iso`.
+The finished image is available at `result/iso/nixos-niri-installer-*.iso`.
 Boot the image in UEFI mode, including through Ventoy with Secure Boot enabled,
 and run:
 
@@ -106,5 +106,4 @@ home-manager switch --flake /etc/nixos#cbrst@asgard
 ```
 
 Noctalia provides the bar, launcher, control center, notifications, wallpaper,
-lock, idle, tray, and OSD functions. `hyprpaper` remains installed as an
-optional fallback and should not be started while Noctalia manages wallpaper.
+lock, idle, tray, and OSD functions.

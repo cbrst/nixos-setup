@@ -12,7 +12,7 @@
     }
   ];
 
-  isoImage.isoName = "nixos-hyprland-installer-${config.system.nixos.version}.iso";
+  isoImage.isoName = "nixos-niri-installer-${config.system.nixos.version}.iso";
   networking.networkmanager.enable = lib.mkForce true;
 
   environment.systemPackages = with pkgs; [

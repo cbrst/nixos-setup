@@ -37,7 +37,7 @@ The shared home-manager module lives at `home-manager/default.nix` and:
 - `ghostty` (string, optional, default "") — machine-specific ghostty
   override text, written to `~/.config/ghostty/machine`
 - `noctalia` (bool, optional, default false) — enables the Noctalia home
-  module (Hyprland/Linux only)
+  module (Niri/Linux only)
 - `stateVersion` (string, optional)
 
 ### Platform gating
@@ -55,7 +55,7 @@ override module.
 
 1. Maintain `home-manager/` as the shared module consumed from the `dotfiles`
    input:
-   - `xdg.configFile` mappings for hypr, noctalia, fastfetch, ghostty, lazygit,
+   - `xdg.configFile` mappings for niri, noctalia, fastfetch, ghostty, lazygit,
      nvim, starship, tmux, wezterm, yt-dlp, zsh (`.zprofile`/`.zshrc`),
      opencode (keep the `lib.replaceStrings` that rewrites the headroom path);
    - the shared `home.packages` list, `home.sessionVariables`,

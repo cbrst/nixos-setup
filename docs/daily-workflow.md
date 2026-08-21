@@ -197,7 +197,7 @@ home-manager switch --flake /etc/nixos#cbrst@asgard
 
 ### `The option 'programs.noctalia' does not exist`
 
-Noctalia (the Hyprland shell) is Linux-only and opt-in via `machine.noctalia`
+Noctalia is Linux-only and opt-in via `machine.noctalia`
 in `hosts/asgard/local.nix`. The option only exists when that field is set. Either
 set `noctalia = true` or remove the reference.
 

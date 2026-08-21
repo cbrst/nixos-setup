@@ -137,7 +137,7 @@ write_local_config() {
   keyMap = "${keymap}";
   system = "x86_64-linux";
   # Opt into the Noctalia shell (the shared home module only defines the option when
-  # this is true). Disable to use plain Hyprland + hyprpaper instead.
+  # this is true). Disable to use Niri without the Noctalia shell.
   noctalia = true;
 }
 EOF

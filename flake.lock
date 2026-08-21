@@ -18,11 +18,11 @@
     "dotfiles": {
       "flake": false,
       "locked": {
-        "lastModified": 1787165413,
-        "narHash": "sha256-WC/Mg3H4oDIz72/AK+QN3UztianSPQLn8FEwTVG7PxE=",
+        "lastModified": 1787347209,
+        "narHash": "sha256-H9dcUvsuYesf7mhvIbD69ayIoLorkI46Ks2uP+SRyzM=",
         "owner": "cbrst",
         "repo": "config",
-        "rev": "2fb3b1c64a3f6f518168829cf9f100b6c4f0ffae",
+        "rev": "bc12a3c89c4aba3a25c57658bf9eec55fbb39d5e",
         "type": "github"
       },
       "original": {
@@ -253,6 +253,26 @@
         "type": "github"
       }
     },
+    "noctalia-greeter": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786882377,
+        "narHash": "sha256-NfnY22tYDrXfIuyexYyqB+jkO6IK23AqmhcNixkU7pw=",
+        "owner": "noctalia-dev",
+        "repo": "noctalia-greeter",
+        "rev": "10d2c9074d3a9219e03b55b2c97f1cc743447af5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noctalia-dev",
+        "repo": "noctalia-greeter",
+        "type": "github"
+      }
+    },
     "pre-commit": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -284,7 +304,8 @@
         "lanzaboote": "lanzaboote",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "noctalia": "noctalia"
+        "noctalia": "noctalia",
+        "noctalia-greeter": "noctalia-greeter"
       }
     },
     "rust-overlay": {

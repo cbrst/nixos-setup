@@ -1,5 +1,5 @@
 {
-  description = "Reusable Hyprland desktop NixOS configuration";
+  description = "Reusable Niri desktop NixOS configuration";
 
   # Inputs are the external "ingredients" this flake is built from. Their
   # exact revisions are pinned in flake.lock, which is what makes a build
@@ -19,6 +19,10 @@
     };
     lanzaboote.url = "github:nix-community/lanzaboote/v1.1.0";
     noctalia.url = "github:noctalia-dev/noctalia";
+    noctalia-greeter = {
+      url = "github:noctalia-dev/noctalia-greeter";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     dotfiles = {
       url = "github:cbrst/config";
       flake = false;
@@ -50,6 +54,7 @@
         modules = [
           ./hosts/${host}/configuration.nix
           lanzaboote.nixosModules.lanzaboote
+          inputs.noctalia-greeter.nixosModules.default
         ];
       };
 

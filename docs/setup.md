@@ -22,7 +22,7 @@ On any machine with Nix and flakes enabled, from this repository:
 ./scripts/build-iso.sh
 ```
 
-This produces `result/iso/nixos-hyprland-installer-<version>.iso`. The ISO
+This produces `result/iso/nixos-niri-installer-<version>.iso`. The ISO
 contains the entire flake (system config, home-manager module, installer) at
 `/root/nixos-config`, so nothing needs to be cloned on the target machine.
 
@@ -31,7 +31,7 @@ contains the entire flake (system config, home-manager module, installer) at
 
 ## 2. Boot and install
 
-1. Write the ISO to a USB stick (e.g. `dd if=nixos-hyprland-installer.iso
+1. Write the ISO to a USB stick (e.g. `dd if=nixos-niri-installer.iso
    of=/dev/sdX bs=4M status=progress`) or use Ventoy.
 2. Boot it in **UEFI mode** (enable/keep Secure Boot; the installer enrolls its
    own keys).
